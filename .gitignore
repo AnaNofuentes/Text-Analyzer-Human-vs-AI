@@ -1,0 +1,27 @@
+# Ignorar archivos CSV
+*.csv
+
+# Ignorar archivos de Python compilados
+__pycache__/
+*.py[cod]
+
+# Ignorar entornos virtuales
+env/
+venv/
+
+# Ignorar archivos de configuración de IDE
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Ignorar archivos de logs
+*.log
+
+# Ignorar archivos temporales
+*.tmp
+*.temp
+
+# Ignorar archivos de sistema
+.DS_Store
+Thumbs.db
+
