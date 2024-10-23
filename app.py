@@ -39,4 +39,4 @@ if st.button('Predecir'):
         else:
             st.write("El modelo predice que este texto fue escrito por un **humano**.")
     else:
-        st.write("Por favor, introduce un texto para realizar la predicción.")
+        st.write("Por favor, introduce un texto para realizar la predicción.") 
