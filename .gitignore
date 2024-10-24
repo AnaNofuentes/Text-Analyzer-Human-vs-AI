@@ -1,5 +1,7 @@
 # Ignorar archivos CSV
 *.csv
+# Ignorar archivos xslx
+*.xlsx  
 
 # Ignorar archivos de Python compilados
 __pycache__/
