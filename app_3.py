@@ -1,116 +1,83 @@
 import streamlit as st
 import pandas as pd
-import gensim
-import re
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
-import pickle
+import joblib
 
-# Inicializamos PorterStemmer
-ps = PorterStemmer()
+# Cargar el modelo entrenado y los objetos de preprocesamiento
+loaded_model = joblib.load('xgboost_model_correct.pkl')
+loaded_vectorizer = joblib.load('vectorizer.pkl')
+loaded_standarizer = joblib.load('standarizer.pkl')
 
-# Cargamos las stopwords en inglés
-stop_words = set(stopwords.words('english'))
+# Estilo CSS para el color de fondo pastel
+st.markdown(
+    """
+    <style>
+    /* Fondo de toda la página */
+    .stApp {
+        background-color: #F3E5F5;  /* Lila claro */
+    }
+    /* Estilo del placeholder dentro del área de texto */
+    ::placeholder {
+        color: #6A1B9A; /* Color morado para el placeholder */
+        opacity: 1; /* Asegurarse de que el placeholder sea completamente visible */
+    }
+    </style>
+    """, unsafe_allow_html=True
+)
 
-# Función para limpiar y procesar el texto
-def limpiar_texto(text):
-    # Verificar si el texto no es nulo o vacío
-    if isinstance(text, str):
-        # Eliminar saltos de línea y múltiples espacios
-        text = re.sub(r'\s+', ' ', text)  # Reemplaza saltos de línea y tabs por un espacio
-        text = text.strip()  # Elimina espacios en blanco iniciales y finales
+# Título de la aplicación con estilo y colores armónicos
+st.markdown("<h1 style='text-align: center; color: #6A1B9A;'>Test Analyzer: AI vs Human</h1>", unsafe_allow_html=True)
 
-        # Convertir a palabras en minúsculas y filtrar stopwords
-        words = [
-            ps.stem(word) for word in gensim.utils.simple_preprocess(text)
-            if word not in gensim.parsing.preprocessing.STOPWORDS and word not in stop_words
-        ]
-        return ' '.join(words)
+# Descripción de la aplicación con colores suaves
+st.markdown("<p style='text-align: center; color: #9C27B0;'>🧠 Esta aplicación predice si un texto fue escrito por una <b>IA</b> o por un <b>humano</b>.</p>", unsafe_allow_html=True)
+
+# Función para recolectar el input del usuario
+def collect_user_input():
+    # Estilo CSS para el área de texto
+    st.markdown(
+        """
+        <style>
+        /* Estilo del área de entrada de texto */
+        textarea {
+            background-color: #FFF3E0;  /* Color melocotón claro */
+            color: #4A148C;  /* Texto en morado oscuro */
+            border: 2px solid #9C27B0; /* Borde en un tono más oscuro */
+            border-radius: 5px; /* Bordes redondeados */
+        }
+        </style>
+        """, unsafe_allow_html=True
+    )
+    return st.text_area("✍️ Introduce el texto aquí:", height=150)
+
+# Recoger el input del usuario
+user_input = collect_user_input()
+
+# Si el usuario ha introducido un texto
+if st.button('🔮 Predecir 🔮'):
+    if user_input:
+        # Vectorizar el texto ingresado por el usuario
+        text_vectorized = loaded_vectorizer.transform([user_input])
+        
+        # Estandarizar los datos vectorizados
+        text_standardized = loaded_standarizer.transform(text_vectorized)
+        
+        # Realizar la predicción con el modelo cargado
+        prediction = loaded_model.predict(text_standardized)
+        
+        # Mostrar el resultado de la predicción con colores armoniosos
+        if prediction[0] == 1:
+            st.markdown(
+                "<div style='background-color:#D4E157; padding: 10px; border-radius: 10px;'>"
+                "<h2 style='text-align: center; color: #4E342E;'>🤖 El modelo predice que este texto fue escrito por una <b>IA</b>.</h2>"
+                "</div>", 
+                unsafe_allow_html=True
+            )
+        else:
+            st.markdown(
+                "<div style='background-color:#80CBC4; padding: 10px; border-radius: 10px;'>"
+                "<h2 style='text-align: center; color: #004D40;'>👤 El modelo predice que este texto fue escrito por un <b>humano</b>.</h2>"
+                "</div>", 
+                unsafe_allow_html=True
+            )
     else:
-        return None  # Devuelve None si el texto es inválido
-
-# Función para aplicar la limpieza al DataFrame
-def procesar_dataframe(df):
-    # Verifica si la columna 'text' existe en el DataFrame
-    if 'text' not in df.columns:
-        st.error("El DataFrame no contiene una columna 'text'.")
-        return None
-    
-    # Aplicar la función de limpieza al DataFrame
-    df['text_cleaned'] = df['text'].apply(limpiar_texto)
-    
-    # Eliminar filas donde el texto limpio es None o vacío
-    df_cleaned = df[df['text_cleaned'].notnull() & (df['text_cleaned'] != '')]
-    
-    # Reiniciar el índice del DataFrame después de eliminar las filas
-    df_cleaned.reset_index(drop=True, inplace=True)
-    
-    return df_cleaned
-
-# Cargar archivos .pkl: modelo, vectorizer y scaler
-def cargar_modelo_y_vectorizador():
-    try:
-        # Carga del modelo guardado
-        with open('xgboost_model_correct.pkl', 'rb') as file:
-            model = pickle.load(file)
-        
-        # Carga del vectorizador guardado
-        with open('vectorizer.pkl', 'rb') as file:
-            vectorizer = pickle.load(file)
-        
-        # Carga del estandarizador guardado
-        with open('standarizer.pkl', 'rb') as file:
-            scaler = pickle.load(file)
-        
-        return model, vectorizer, scaler
-    
-    except FileNotFoundError as e:
-        st.error(f"Error cargando los archivos .pkl: {e}")
-        return None, None, None
-
-# Integrar en Streamlit
-def main():
-    st.title("Procesador de Texto y Predicción con Modelo")
-
-    # Cargar modelo, vectorizer y scaler
-    model, vectorizer, scaler = cargar_modelo_y_vectorizador()
-    
-    if model is None or vectorizer is None or scaler is None:
-        return  # Detiene la ejecución si hay un error en la carga de archivos
-
-    # Subir el archivo CSV para procesar
-    uploaded_file = st.file_uploader("Cargar archivo CSV", type=["csv"])
-    
-    if uploaded_file is not None:
-        # Leer el archivo en un DataFrame
-        df = pd.read_csv(uploaded_file)
-        st.write("Datos originales:")
-        st.write(df.head())
-        
-        # Aplicar la función de procesamiento
-        df_cleaned = procesar_dataframe(df)
-        
-        if df_cleaned is not None:
-            st.write("Datos procesados:")
-            st.write(df_cleaned.head())
-            
-            # Convertir el texto limpio en vectores usando el vectorizador
-            X_vectores = vectorizer.transform(df_cleaned['text_cleaned'])
-            
-            # Escalar los vectores usando el estandarizador
-            X_scaled = scaler.transform(X_vectores.toarray())
-            
-            # Hacer predicciones con el modelo
-            predicciones = model.predict(X_scaled)
-            
-            # Añadir las predicciones al DataFrame
-            df_cleaned['predicciones'] = predicciones
-            st.write("Datos con Predicciones:")
-            st.write(df_cleaned.head())
-
-            # Permitir la descarga del DataFrame procesado
-            csv = df_cleaned.to_csv(index=False).encode('utf-8')
-            st.download_button(label="Descargar CSV con Predicciones", data=csv, file_name='datos_predicciones.csv', mime='text/csv')
-
-if __name__ == '__main__':
-    main()
+        # Cambiar el color del mensaje para que sea claramente visible
+        st.markdown("<p style='text-align: center; color: #E53935;'>⚠️ Por favor, introduce un texto para realizar la predicción.</p>", unsafe_allow_html=True)
