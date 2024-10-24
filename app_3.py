@@ -51,7 +51,7 @@ def procesar_dataframe(df):
 def cargar_modelo_y_vectorizador():
     try:
         # Carga del modelo guardado
-        with open('model.pkl', 'rb') as file:
+        with open('xgboost_model_correct.pkl', 'rb') as file:
             model = pickle.load(file)
         
         # Carga del vectorizador guardado
@@ -59,7 +59,7 @@ def cargar_modelo_y_vectorizador():
             vectorizer = pickle.load(file)
         
         # Carga del estandarizador guardado
-        with open('scaler.pkl', 'rb') as file:
+        with open('standarizer.pkl', 'rb') as file:
             scaler = pickle.load(file)
         
         return model, vectorizer, scaler
