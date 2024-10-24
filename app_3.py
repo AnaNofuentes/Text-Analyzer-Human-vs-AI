@@ -7,46 +7,29 @@ loaded_model = joblib.load('xgboost_model_correct.pkl')
 loaded_vectorizer = joblib.load('vectorizer.pkl')
 loaded_standarizer = joblib.load('standarizer.pkl')
 
-# Estilo CSS para el color de fondo pastel
+# Título de la aplicación
 st.markdown(
-    """
-    <style>
-    /* Fondo de toda la página */
-    .stApp {
-        background-color: #F3E5F5;  /* Lila claro */
-    }
-    /* Estilo del placeholder dentro del área de texto */
-    ::placeholder {
-        color: #6A1B9A; /* Color morado para el placeholder */
-        opacity: 1; /* Asegurarse de que el placeholder sea completamente visible */
-    }
-    </style>
-    """, unsafe_allow_html=True
+    "<h1 style='text-align: center; color: #6A1B9A;'>Test Analyzer: AI vs Human</h1>", 
+    unsafe_allow_html=True
 )
 
-# Título de la aplicación con estilo y colores armónicos
-st.markdown("<h1 style='text-align: center; color: #6A1B9A;'>Test Analyzer: AI vs Human</h1>", unsafe_allow_html=True)
+# Mostrar la imagen debajo del título
+st.image("image.png", use_column_width=False, width=300)  
 
-# Descripción de la aplicación con colores suaves
-st.markdown("<p style='text-align: center; color: #9C27B0;'>🧠 Esta aplicación predice si un texto fue escrito por una <b>IA</b> o por un <b>humano</b>.</p>", unsafe_allow_html=True)
+# Descripción de la aplicación
+st.markdown(
+    "<p style='text-align: center; color: #9C27B0; font-size: 18px;'>🧠 Esta aplicación predice si un texto fue escrito por una <b>IA</b> o por un <b>humano</b>.</p>", 
+    unsafe_allow_html=True
+)
 
 # Función para recolectar el input del usuario
 def collect_user_input():
-    # Estilo CSS para el área de texto
     st.markdown(
         """
-        <style>
-        /* Estilo del área de entrada de texto */
-        textarea {
-            background-color: #FFF3E0;  /* Color melocotón claro */
-            color: #4A148C;  /* Texto en morado oscuro */
-            border: 2px solid #9C27B0; /* Borde en un tono más oscuro */
-            border-radius: 5px; /* Bordes redondeados */
-        }
-        </style>
+        <div style='color: #4A148C; font-size: 16px; font-weight: bold;'>✍️ Introduce el texto aquí:</div>
         """, unsafe_allow_html=True
     )
-    return st.text_area("✍️ Introduce el texto aquí:", height=150)
+    return st.text_area("", height=150)
 
 # Recoger el input del usuario
 user_input = collect_user_input()

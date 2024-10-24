@@ -1,75 +1,101 @@
 import streamlit as st
 import pandas as pd
-import gensim
-import re
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
+import joblib
 
-# Inicializamos PorterStemmer
-ps = PorterStemmer()
+# Cargar el modelo entrenado y los objetos de preprocesamiento
+loaded_model = joblib.load('xgboost_model_correct.pkl')
+loaded_vectorizer = joblib.load('vectorizer.pkl')
+loaded_standarizer = joblib.load('standarizer.pkl')
 
-# Cargamos las stopwords en inglés
-stop_words = set(stopwords.words('english'))
+# Estilo CSS para el fondo de la aplicación y el texto
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #f0f4f8;  /* Color pastel suave */
+        color: #333;  /* Color del texto */
+    }
+    .reportview-container {
+        background-color: #f0f4f8; /* Asegúrate de que el contenedor también tenga el mismo color */
+    }
+    .title-with-border {
+        color: #6A1B9A; /* Color del título */
+        -webkit-text-stroke: 1px white; /* Borde blanco alrededor del título */
+        font-size: 2.5em; /* Tamaño de fuente más grande */
+        text-align: center; /* Centrar el título */
+        font-family: 'Arial', sans-serif; /* Fuente clara */
+    }
+    .text-light-pink {
+        color: #FFB6C1; /* Rosa claro para el texto */
+        font-size: 1.2em; /* Tamaño de fuente más grande */
+    }
+    .stTextInput, .stTextArea {
+        border: 1px solid #9C27B0; /* Borde personalizado para inputs */
+        border-radius: 5px; /* Bordes redondeados */
+    }
+    .stButton {
+        background-color: #6A1B9A; /* Color del botón */
+        color: white; /* Color del texto del botón */
+        border: none; /* Sin borde alrededor del botón */
+    }
+    </style>
+    """, unsafe_allow_html=True
+)
 
-# Función para limpiar y procesar el texto
-def limpiar_texto(text):
-    # Verificar si el texto no es nulo o vacío
-    if isinstance(text, str):
-        # Eliminar saltos de línea y múltiples espacios
-        text = re.sub(r'\s+', ' ', text)  # Reemplaza saltos de línea y tabs por un espacio
-        text = text.strip()  # Elimina espacios en blanco iniciales y finales
+# Título de la aplicación
+st.markdown(
+    "<h1 class='title-with-border'>Test Analyzer: AI vs Human</h1>", 
+    unsafe_allow_html=True
+)
 
-        # Convertir a palabras en minúsculas y filtrar stopwords
-        words = [
-            ps.stem(word) for word in gensim.utils.simple_preprocess(text)
-            if word not in gensim.parsing.preprocessing.STOPWORDS and word not in stop_words
-        ]
-        return ' '.join(words)
+# Mostrar la imagen debajo del título
+st.image("image.png", use_column_width=False, width=300)  
+
+# Descripción de la aplicación
+st.markdown(
+    "<p class='text-light-pink'>🧠 Esta aplicación predice si un texto fue escrito por una <b>IA</b> o por un <b>humano</b>.</p>", 
+    unsafe_allow_html=True
+)
+
+# Función para recolectar el input del usuario
+def collect_user_input():
+    st.markdown(
+        """
+        <div style='color: #4A148C; font-size: 16px; font-weight: bold;' class='text-light-pink'>✍️ Introduce el texto aquí:</div>
+        """, unsafe_allow_html=True
+    )
+    return st.text_area("", height=150)
+
+# Recoger el input del usuario
+user_input = collect_user_input()
+
+# Si el usuario ha introducido un texto
+if st.button('🔮 Predecir 🔮'):
+    if user_input:
+        # Vectorizar el texto ingresado por el usuario
+        text_vectorized = loaded_vectorizer.transform([user_input])
+        
+        # Estandarizar los datos vectorizados
+        text_standardized = loaded_standarizer.transform(text_vectorized)
+        
+        # Realizar la predicción con el modelo cargado
+        prediction = loaded_model.predict(text_standardized)
+        
+        # Mostrar el resultado de la predicción con colores armoniosos
+        if prediction[0] == 1:
+            st.markdown(
+                "<div style='background-color:#D4E157; padding: 10px; border-radius: 10px;'>"
+                "<h2 style='text-align: center; color: #4E342E;' class='text-light-pink'>🤖 El modelo predice que este texto fue escrito por una <b>IA</b>.</h2>"
+                "</div>", 
+                unsafe_allow_html=True
+            )
+        else:
+            st.markdown(
+                "<div style='background-color:#80CBC4; padding: 10px; border-radius: 10px;'>"
+                "<h2 style='text-align: center; color: #004D40;' class='text-light-pink'>👤 El modelo predice que este texto fue escrito por un <b>humano</b>.</h2>"
+                "</div>", 
+                unsafe_allow_html=True
+            )
     else:
-        return None  # Devuelve None si el texto es inválido
-
-# Función para aplicar la limpieza al DataFrame
-def procesar_dataframe(df):
-    # Verifica si la columna 'text' existe en el DataFrame
-    if 'text' not in df.columns:
-        st.error("El DataFrame no contiene una columna 'text'.")
-        return None
-    
-    # Aplicar la función de limpieza al DataFrame
-    df['text_cleaned'] = df['text'].apply(limpiar_texto)
-    
-    # Eliminar filas donde el texto limpio es None o vacío
-    df_cleaned = df[df['text_cleaned'].notnull() & (df['text_cleaned'] != '')]
-    
-    # Reiniciar el índice del DataFrame después de eliminar las filas
-    df_cleaned.reset_index(drop=True, inplace=True)
-    
-    return df_cleaned
-
-# Integrar en Streamlit
-def main():
-    st.title("Procesador de Texto y Limpieza de Datos")
-    
-    # Subir el archivo CSV para procesar
-    uploaded_file = st.file_uploader("Cargar archivo CSV", type=["csv"])
-    
-    if uploaded_file is not None:
-        # Leer el archivo en un DataFrame
-        df = pd.read_csv(uploaded_file)
-        st.write("Datos originales:")
-        st.write(df.head())
-        
-        # Aplicar la función de procesamiento
-        df_cleaned = procesar_dataframe(df)
-        
-        if df_cleaned is not None:
-            st.write("Datos procesados:")
-            st.write(df_cleaned.head())
-
-            # Permitir la descarga del DataFrame procesado
-            csv = df_cleaned.to_csv(index=False).encode('utf-8')
-            st.download_button(label="Descargar CSV Limpio", data=csv, file_name='datos_procesados.csv', mime='text/csv')
-
-if __name__ == '__main__':
-    main()
-
+        # Cambiar el color del mensaje para que sea claramente visible
+        st.markdown("<p style='text-align: center; color: #E53935;' class='text-light-pink'>⚠️ Por favor, introduce un texto para realizar la predicción.</p>", unsafe_allow_html=True)
