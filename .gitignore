@@ -27,3 +27,5 @@ venv/
 .DS_Store
 Thumbs.db
 
+# Ignorar archivos de prueba
+prueba_local.ipynb
