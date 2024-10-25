@@ -48,6 +48,8 @@ pip install -r requirements.txt
 ## 💻 Ejecución
 Para ejecutar la aplicación, utiliza el siguiente comando:
 streamlit run app.py
+## Presentación
+https://www.canva.com/design/DAGUgP3VxLQ/8SGYaYvDgH6j3SBlBrlsjw/edit?utm_content=DAGUgP3VxLQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
 🤝 Contribuciones
 Si deseas contribuir a este proyecto, no dudes en abrir un issue o enviar un pull request. Todas las contribuciones son bienvenidas.
