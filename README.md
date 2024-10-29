@@ -41,9 +41,6 @@ La aplicación se desarrolla con **Streamlit**, ofreciendo una interfaz intuitiv
 
 ---
 
-## 🚀 Instalación
-Para instalar las dependencias necesarias, ejecuta:
-pip install -r requirements.txt
 
 ## 💻 Ejecución
 Para ejecutar la aplicación, utiliza el siguiente comando:
