@@ -56,4 +56,4 @@ streamlit run app.py
 Si deseas contribuir a este proyecto, no dudes en abrir un issue o enviar un pull request. Todas las contribuciones son bienvenidas.
 
 📬 Contacto
-Para preguntas o comentarios, puedes contactar a [Ana Nofuentes Solano].
+Para preguntas o comentarios, puedes contactar a [Ana Nofuentes Solano](https://www.linkedin.com/in/ana-nofuentes-solano-654026a3/).
